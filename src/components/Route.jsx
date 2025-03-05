@@ -158,7 +158,7 @@ const Route = () => {
           {airports.length > 0 ? (
             airports.map((item, index) => (
                 <section className="clickable-section" onClick={() => handleAirportButtonClick(item, index)} 
-              style={{ padding: '20px', cursor: 'pointer' }} key={item.locationId}>
+              style={{ padding: '20px', cursor: 'pointer' }} key={item.index}>
                     Via {item.name} ({item?.locationCode})
                 <hr />
                 </section>
