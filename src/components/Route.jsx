@@ -58,7 +58,6 @@ const Route = () => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
-
     const getRoutes = async (originId, destId) => {
       setLoading(true);
         try {
@@ -158,7 +157,7 @@ const Route = () => {
           {airports.length > 0 ? (
             airports.map((item, index) => (
                 <section className="clickable-section" onClick={() => handleAirportButtonClick(item, index)} 
-              style={{ padding: '20px', cursor: 'pointer' }} key={item.locationId}>
+              style={{ padding: '20px', cursor: 'pointer' }} key={item.index}>
                     Via {item.name} ({item?.locationCode})
                 <hr />
                 </section>
