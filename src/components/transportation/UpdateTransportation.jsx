@@ -18,13 +18,13 @@ const UpdateTransportation = () => {
         destinationLocation: {locationId: destinationLocationId}, transportationType, operatingDays: JSON.parse(operatingDays) };
         await editTransportation(updatedTransportation);
         setMessage('Transportation updated successfully!');
-        setTransportationId(0);
-        setOriginLocationId(0);
-        setDestLocationId(0);
+        setTransportationId(1);
+        setOriginLocationId(1);
+        setDestLocationId(1);
         setOperatingDays([]);
         setTransportationType('');
       } catch (error) {
-        setMessage('Error updating transportation: ' + error);
+        setMessage('Error updating transportation: ' + error.message);
       }
     };
   

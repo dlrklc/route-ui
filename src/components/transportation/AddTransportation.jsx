@@ -18,12 +18,12 @@ const AddTransportation = () => {
         transportationType: transportationType, operatingDays: JSON.parse(operatingDays) };
         await addTransportation(newTransportation);
         setMessage('Transportation added successfully!');
-        setOriginLocationId(0);
-        setDestLocationId(0);
+        setOriginLocationId(1);
+        setDestLocationId(1);
         setTransportationType('');
         setOperatingDays([]);
         } catch (error) {
-        setMessage('Error adding transportation: ' + error);
+        setMessage('Error adding transportation: ' + error.message);
         }
     };
     

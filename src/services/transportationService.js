@@ -30,7 +30,7 @@ export const addTransportation = async (newTransportation) => {
     const response = await axios.post(BASE_URL, newTransportation);
     return response.data;
   } catch (error) {
-    console.error('Error adding transportation: ', error);
+    console.error('Error adding transportation: ', error.message);
     throw error;
   }
 };
@@ -41,7 +41,7 @@ export const editTransportation = async (updatedTransportation) => {
     const response = await axios.put(BASE_URL, updatedTransportation);
     return response.data;
   } catch (error) {
-    console.error('Error editing transportation: ', error);
+    console.error('Error editing transportation: ', error.message);
     throw error;
   }
 };

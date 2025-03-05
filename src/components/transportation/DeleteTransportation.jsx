@@ -10,7 +10,7 @@ const DeleteTransportations = () => {
           try {
             await deleteTransportation(transportationId);
             setMessage('Transportation deleted successfully!');
-            setTransportationId('');
+            setTransportationId(1);
           } catch (error) {
             setMessage('Error deleting transportation: ' + error.message);
           }
