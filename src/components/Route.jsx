@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { fetchLocations } from '../services/locationService';
-import { fetchRoutes } from '../services/transportationService';
+import { fetchRoutes, fetchTransportationsById } from '../services/transportationService';
 
 const Route = () => {
   const [locations, setLocations] = useState([]);
-  const [routes, setRoutes] = useState([]);
+  const [selectedTransportations, setSelectedTransportations] = useState([]);
+  const [selectedTransportationsType, setSelectedTransportationsType] = useState([]);
+  const [transportationsPerFlight, setTransportationsPerFlight] = useState([]);
   const [date, setDate] = useState([]);
-  const [selectedLocations, setSelectedLocations] = useState([]);
+  const [airports, setAirports] = useState([]);
+  const [selectedRoute, setSelectedRoute] = useState([]);
   const [selectedTransportationTypes, setSelectedTransportationTypes] = useState([]);
   const [transportationTypes, setTransportationTypes] = useState([]);
-  const [airports, setAirports] = useState([]);
+  const [flightIds, setFlightIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dropdownOriginData, setDropdownOriginData] = useState([]);
@@ -39,6 +42,7 @@ const Route = () => {
     getLocations(); 
   }, [destId]);  //will run every time search button clicked
 
+
   useEffect(() => {
     const locationNames = locations.map(location => location.name)   //set drop down data
     setDropdownOriginData(locationNames);
@@ -47,13 +51,24 @@ const Route = () => {
 
     
   useEffect(() => {
-    if (routes.length > 0) {
-        const filteredLists = routes.map(route =>
-            route.find(item => item.name.toLowerCase().includes('airport')) 
-          );
-        setAirports(filteredLists);    //set data to show airports
+
+    for (const key in transportationsPerFlight) {
+      if (transportationsPerFlight.hasOwnProperty(key)) {
+        const flights = transportationsPerFlight[key];  
+        console.log(`Processing flight with key: ${key}`);
+        
+        flights.forEach(flight => {
+       
+          console.log(`Before Flight: From ${flight.beforeFlight.originName} to ${flight.beforeFlight.destinationName}, Transport: ${flight.beforeFlight.transportationType.join(", ")}`);
+          console.log(`Flight: From ${flight.flight.originName} to ${flight.flight.destinationName}, Transport: ${flight.flight.transportationType.join(", ")}`);
+          console.log(`After Flight: From ${flight.afterFlight.originName} to ${flight.afterFlight.destinationName}, Transport: ${flight.afterFlight.transportationType.join(", ")}`);
+        });
+        const airports = flights.map(flight => flight.flight.originName)
+        setAirports(airports)
+      }
     }
-  }, [routes]);  //will run the effect every time routes changes
+   //set data to show airports
+  }, [transportationsPerFlight]);  //will run the effect every time routes changes
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
@@ -62,8 +77,7 @@ const Route = () => {
       setLoading(true);
         try {
           const response = await fetchRoutes(originId, destId, date);
-          setRoutes(response.routes);
-          setTransportationTypes(response.transportationTypes);
+          setTransportationsPerFlight(response.transportationsPerFlight);
         } catch (err) {
           setError('Error fetching routes: ' + err.status);
         } finally {
@@ -72,8 +86,8 @@ const Route = () => {
     };
 
   const handleSearchButtonClick = async () => {
-    setRoutes([]);
-    setTransportationTypes([]);
+    setTransportationsPerFlight([]);
+    //setTransportationTypes([]);
     //Get ids from selected locations
     const indexOriginData = locations.findIndex(obj => obj.name === selectedOriginData);
     const indexDestData = locations.findIndex(obj => obj.name === selectedDestData);
@@ -92,10 +106,35 @@ const Route = () => {
     setOverlayVisible(true); //show the overlay
     setNewContentVisible(true); //show the new content
 
-    setSelectedLocations(routes[index]);
-    setSelectedTransportationTypes(transportationTypes[index]);
+    for (const key in transportationsPerFlight) {
+      if (transportationsPerFlight.hasOwnProperty(key)) {
+        const flights = transportationsPerFlight[key];  
+        console.log(`Processing flight with key: ${key}`);
+        
+        flights.forEach(flight => {
+          if(flight.flight.originName == item){
+            const retArr = [flight.beforeFlight.originName, flight.flight.originName, flight.afterFlight.originName, flight.afterFlight.destinationName];
+            const retTypeArr = [flight.beforeFlight.transportationType, flight.flight.transportationType, flight.afterFlight.transportationType]
+            setSelectedTransportations(retArr)
+            setSelectedTransportationsType(retTypeArr)
+          }  
+       
+          console.log(`Before Flight: From ${flight.beforeFlight.originName} to ${flight.beforeFlight.destinationName}, Transport: ${flight.beforeFlight.transportationType.join(", ")}`);
+          console.log(`Flight: From ${flight.flight.originName} to ${flight.flight.destinationName}, Transport: ${flight.flight.transportationType.join(", ")}`);
+          console.log(`After Flight: From ${flight.afterFlight.originName} to ${flight.afterFlight.destinationName}, Transport: ${flight.afterFlight.transportationType.join(", ")}`);
+        });
+        const airports = flights.map(flight => flight.flight.originName)
+        setAirports(airports)
+      }
+    }
+
+    //setSelectedTransportations(transportationsPerFlight[0]);
+    //setSelectedTransportationTypes(routes);
+
+    //setSelectedRoute(transportationsPerFlight)
     
   };
+
 
   const handleClose = () => {
     setNewContentVisible(false); //hide the new content
@@ -158,7 +197,7 @@ const Route = () => {
             airports.map((item, index) => (
                 <section className="clickable-section" onClick={() => handleAirportButtonClick(item, index)} 
               style={{ padding: '20px', cursor: 'pointer' }} key={item.index}>
-                    Via {item.name} ({item?.locationCode})
+                    Via {item} ({item?.locationCode})
                 <hr />
                 </section>
             ))
@@ -201,7 +240,7 @@ const Route = () => {
           <h3>Route Details</h3>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             {/* Loop through the airports and transport types */}
-            {selectedLocations.map((selectedLocation, index) => (
+            {selectedTransportations.map((selectedLocation, index) => (
               <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
                 {/* Render the arrow before airport */}
                 {index > 0 && <div style={{ fontSize: '24px', marginBottom: '10px' }}>↓</div>}
@@ -216,16 +255,16 @@ const Route = () => {
                     marginRight: '10px',
                   }}
                 >
-                  {selectedLocation.name} ({selectedLocation?.locationCode})
+                  {selectedLocation} ({selectedLocation?.locationCode})
                 </div>
 
                 {/* Show the arrow only if it's not the last airport */}
-                {index < selectedLocations.length - 1 && (
+                {index < selectedTransportations.length - 1 && (
                   <div style={{ fontSize: '24px' }}>↓</div> // Down arrow
                 )}
 
                 {/* Show the transport type after the arrow */}
-                {index < selectedTransportationTypes.length && (
+                {index < selectedTransportationsType.length && (
                   <div
                     style={{
                       fontSize: '18px',
@@ -235,7 +274,7 @@ const Route = () => {
                       backgroundColor: '#f4f4f4',
                     }}
                   >
-                    {selectedTransportationTypes[index]}
+                    {selectedTransportationsType[index]}
                   </div>
                 )}
               </div>

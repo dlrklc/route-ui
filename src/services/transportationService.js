@@ -13,6 +13,17 @@ export const fetchTransportations = async () => {
   }
 };
 
+export const fetchTransportationsById = async (id) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching transportations: ', error);
+    throw error;
+  }
+};
+
+
 // fetch routes from the API
 export const fetchRoutes = async (originId, destId, date) => {
   try {
