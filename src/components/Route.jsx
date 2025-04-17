@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchLocations } from '../services/locationService';
-import { fetchRoutes, fetchTransportationsById } from '../services/transportationService';
+import { fetchRoutes } from '../services/transportationService';
 
 const Route = () => {
   const [locations, setLocations] = useState([]);
@@ -9,10 +9,6 @@ const Route = () => {
   const [transportationsPerFlight, setTransportationsPerFlight] = useState([]);
   const [date, setDate] = useState([]);
   const [airports, setAirports] = useState([]);
-  const [selectedRoute, setSelectedRoute] = useState([]);
-  const [selectedTransportationTypes, setSelectedTransportationTypes] = useState([]);
-  const [transportationTypes, setTransportationTypes] = useState([]);
-  const [flightIds, setFlightIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dropdownOriginData, setDropdownOriginData] = useState([]);
@@ -52,21 +48,19 @@ const Route = () => {
     
   useEffect(() => {
 
+    let airportsList = []
+
     for (const key in transportationsPerFlight) {
       if (transportationsPerFlight.hasOwnProperty(key)) {
-        const flights = transportationsPerFlight[key];  
+        const routes = transportationsPerFlight[key];  
         console.log(`Processing flight with key: ${key}`);
         
-        flights.forEach(flight => {
-       
-          console.log(`Before Flight: From ${flight.beforeFlight.originName} to ${flight.beforeFlight.destinationName}, Transport: ${flight.beforeFlight.transportationType.join(", ")}`);
-          console.log(`Flight: From ${flight.flight.originName} to ${flight.flight.destinationName}, Transport: ${flight.flight.transportationType.join(", ")}`);
-          console.log(`After Flight: From ${flight.afterFlight.originName} to ${flight.afterFlight.destinationName}, Transport: ${flight.afterFlight.transportationType.join(", ")}`);
+        routes.forEach(route => {
+          airportsList.push({key: key, name: route.flight.originName})       
         });
-        const airports = flights.map(flight => flight.flight.originName)
-        setAirports(airports)
       }
     }
+    setAirports(airportsList)
    //set data to show airports
   }, [transportationsPerFlight]);  //will run the effect every time routes changes
 
@@ -101,38 +95,55 @@ const Route = () => {
 
   };
 
-  const handleAirportButtonClick = (item, index) => {
+  const handleAirportButtonClick = (item, index) => {  //select airport content
+
+    setSelectedTransportations([])
 
     setOverlayVisible(true); //show the overlay
     setNewContentVisible(true); //show the new content
 
-    for (const key in transportationsPerFlight) {
-      if (transportationsPerFlight.hasOwnProperty(key)) {
-        const flights = transportationsPerFlight[key];  
-        console.log(`Processing flight with key: ${key}`);
-        
-        flights.forEach(flight => {
-          if(flight.flight.originName == item){
-            const retArr = [flight.beforeFlight.originName, flight.flight.originName, flight.afterFlight.originName, flight.afterFlight.destinationName];
-            const retTypeArr = [flight.beforeFlight.transportationType, flight.flight.transportationType, flight.afterFlight.transportationType]
+        const routes = transportationsPerFlight[parseInt(item.key)];  
+
+        routes.forEach(route => {
+          let retArr = []
+          let retTypeArr = []
+          let transportationType;
+          
+          console.log(`Processing flight with key: ${item.key}`);
+          if(route.flight.originName == item.name){
+            if(route.beforeFlight != undefined){
+              retArr.push(route.beforeFlight.originName)
+              if(Array.isArray(route.beforeFlight.transportationType) && route.beforeFlight.transportationType.length > 1){
+                transportationType = route.beforeFlight.transportationType.join(", ");
+              }
+              else{
+                transportationType = route.beforeFlight.transportationType
+              }
+              retTypeArr.push(transportationType)
+            }
+            retArr.push(route.flight.originName)
+            retTypeArr.push(route.flight.transportationType)
+            if(route.afterFlight != undefined){
+              retArr.push(route.afterFlight.originName)
+              retArr.push(route.afterFlight.destinationName)
+              if(Array.isArray(route.afterFlight.transportationType) && route.afterFlight.transportationType.length > 1){
+                transportationType = route.afterFlight.transportationType.join(", ");
+              }
+              else{
+                transportationType = route.afterFlight.transportationType
+              }
+              retTypeArr.push(transportationType)
+            } else{
+              retArr.push(route.flight.destinationName)
+            }
             setSelectedTransportations(retArr)
             setSelectedTransportationsType(retTypeArr)
           }  
        
-          console.log(`Before Flight: From ${flight.beforeFlight.originName} to ${flight.beforeFlight.destinationName}, Transport: ${flight.beforeFlight.transportationType.join(", ")}`);
-          console.log(`Flight: From ${flight.flight.originName} to ${flight.flight.destinationName}, Transport: ${flight.flight.transportationType.join(", ")}`);
-          console.log(`After Flight: From ${flight.afterFlight.originName} to ${flight.afterFlight.destinationName}, Transport: ${flight.afterFlight.transportationType.join(", ")}`);
-        });
-        const airports = flights.map(flight => flight.flight.originName)
-        setAirports(airports)
-      }
-    }
-
-    //setSelectedTransportations(transportationsPerFlight[0]);
-    //setSelectedTransportationTypes(routes);
-
-    //setSelectedRoute(transportationsPerFlight)
-    
+          console.log(`Before Flight: From ${route.beforeFlight?.originName} to ${route.beforeFlight?.destinationName}, Transport: ${route.beforeFlight?.transportationType.join(", ")}`);
+          console.log(`Flight: From ${route.flight.originName} to ${route.flight.destinationName}, Transport: ${route.flight.transportationType.join(", ")}`);
+          console.log(`After Flight: From ${route.afterFlight?.originName} to ${route.afterFlight?.destinationName}, Transport: ${route.afterFlight?.transportationType.join(", ")}`);
+        });  
   };
 
 
@@ -197,7 +208,7 @@ const Route = () => {
             airports.map((item, index) => (
                 <section className="clickable-section" onClick={() => handleAirportButtonClick(item, index)} 
               style={{ padding: '20px', cursor: 'pointer' }} key={item.index}>
-                    Via {item} ({item?.locationCode})
+                    Via {item.name}
                 <hr />
                 </section>
             ))
@@ -255,7 +266,7 @@ const Route = () => {
                     marginRight: '10px',
                   }}
                 >
-                  {selectedLocation} ({selectedLocation?.locationCode})
+                  {selectedLocation}
                 </div>
 
                 {/* Show the arrow only if it's not the last airport */}
